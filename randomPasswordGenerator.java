@@ -1,4 +1,3 @@
-package com.cs.junghu;
 import java.util.Random;
 
 public class randomPasswordGenerator {
@@ -41,10 +40,5 @@ public class randomPasswordGenerator {
 			}
 		}
 		return password;
-	}
-	
-	public static void main(String[] a) {
-		randomPasswordGenerator r = new randomPasswordGenerator();
-		System.out.println(r.generatePassword());
 	}
 }
