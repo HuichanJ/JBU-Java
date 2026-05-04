@@ -2,8 +2,9 @@ package application;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.List;
 import java.util.Random;
 
 public class ProjectFinal extends JFrame {
@@ -11,7 +12,12 @@ public class ProjectFinal extends JFrame {
     JTextField passwordField;
     JButton generateBtn;
     JButton ratingBtn;
+    JButton saveBtn;
+    JButton viewSavedBtn;
     JTextArea outputArea;
+
+    JFrame savedPasswordsFrame;
+    JTextArea savedPasswordsArea;
 
     public String password = null;
     public int passLength;
@@ -23,7 +29,7 @@ public class ProjectFinal extends JFrame {
 
     public ProjectFinal() {
         setTitle("Password Strength Tester");
-        setSize(600, 350);
+        setSize(650, 400);
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -36,18 +42,26 @@ public class ProjectFinal extends JFrame {
         add(passwordField);
 
         generateBtn = new JButton("Generate");
-        generateBtn.setBounds(140, 100, 120, 30);
+        generateBtn.setBounds(80, 100, 120, 30);
         add(generateBtn);
 
         ratingBtn = new JButton("Get Rating");
-        ratingBtn.setBounds(300, 100, 120, 30);
+        ratingBtn.setBounds(220, 100, 120, 30);
         add(ratingBtn);
 
+        saveBtn = new JButton("Save Password");
+        saveBtn.setBounds(360, 100, 130, 30);
+        add(saveBtn);
+
+        viewSavedBtn = new JButton("View Saved Passwords");
+        viewSavedBtn.setBounds(500, 100, 130, 30);
+        add(viewSavedBtn);
+
         outputArea = new JTextArea();
-        outputArea.setBounds(40, 150, 500, 130);
+        outputArea.setBounds(40, 160, 550, 170);
         outputArea.setEditable(false);
         add(outputArea);
-         	
+
         generateBtn.addActionListener(e -> {
             password = generateNewPassword();
             passwordField.setText(password);
@@ -69,6 +83,19 @@ public class ProjectFinal extends JFrame {
             }
         });
 
+        saveBtn.addActionListener(e -> {
+            password = passwordField.getText();
+
+            if (password.isEmpty()) {
+                outputArea.setText("Enter a password before saving.");
+                return;
+            }
+
+            savePassword();
+        });
+
+        viewSavedBtn.addActionListener(e -> toggleSavedPasswordsWindow());
+
         setVisible(true);
     }
 
@@ -80,7 +107,7 @@ public class ProjectFinal extends JFrame {
 
         passLength = password.length();
 
-        for (int i = 0; i < passLength; ++i) {
+        for (int i = 0; i < passLength; i++) {
             char var = password.charAt(i);
 
             if (Character.isLetter(var)) {
@@ -185,6 +212,51 @@ public class ProjectFinal extends JFrame {
                 return password;
             }
         }
+    }
+
+    public void savePassword() {
+        try {
+            Files.writeString(
+                    Path.of("ProjectFinalData.txt"),
+                    password + "\n",
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND
+            );
+
+            outputArea.setText("Password saved successfully.");
+
+        } catch (IOException e) {
+            outputArea.setText("Error saving password.");
+            e.printStackTrace();
+        }
+    }
+
+    public void toggleSavedPasswordsWindow() {
+        if (savedPasswordsFrame != null && savedPasswordsFrame.isVisible()) {
+            savedPasswordsFrame.dispose();
+            savedPasswordsFrame = null;
+            return;
+        }
+
+        savedPasswordsFrame = new JFrame("Saved Passwords");
+        savedPasswordsFrame.setSize(400, 300);
+
+        savedPasswordsArea = new JTextArea();
+        savedPasswordsArea.setEditable(false);
+
+        try {
+            List<String> passwords = Files.readAllLines(Path.of("ProjectFinalData.txt"));
+
+            for (String pass : passwords) {
+                savedPasswordsArea.append(pass + "\n");
+            }
+
+        } catch (IOException e) {
+            savedPasswordsArea.setText("No saved passwords found.");
+        }
+
+        savedPasswordsFrame.add(new JScrollPane(savedPasswordsArea));
+        savedPasswordsFrame.setVisible(true);
     }
 
     public static void main(String[] args) {
